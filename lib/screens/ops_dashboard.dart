@@ -737,6 +737,7 @@ class _LiveNewsFeed extends StatefulWidget {
 class _LiveNewsFeedState extends State<_LiveNewsFeed> {
   List<RealtimeEvent> _liveEvents = [];
   bool _loading = true;
+  bool _backendReachable = false;
   String? _error;
 
   @override
@@ -749,7 +750,7 @@ class _LiveNewsFeedState extends State<_LiveNewsFeed> {
     setState(() { _loading = _liveEvents.isEmpty; _error = null; });
     try {
       final events = await ApiService.fetchRealtimeEvents(limit: 30);
-      if (mounted) setState(() { _liveEvents = events; _loading = false; });
+      if (mounted) setState(() { _liveEvents = events; _loading = false; _backendReachable = true; });
       // Auto-refresh every 30 seconds
       await Future.delayed(const Duration(seconds: 30));
       if (mounted) _fetch();
@@ -761,7 +762,7 @@ class _LiveNewsFeedState extends State<_LiveNewsFeed> {
   @override
   Widget build(BuildContext context) {
     // If backend has no live events yet, fall back to static library
-    final useStatic = _liveEvents.isEmpty && !_loading;
+    final useStatic = !_backendReachable && !_loading;
 
     if (_loading && _liveEvents.isEmpty) {
       return const Center(
@@ -780,7 +781,7 @@ class _LiveNewsFeedState extends State<_LiveNewsFeed> {
       // Fallback to hardcoded library with a banner
       return Column(
         children: [
-          Container(
+          if (!_backendReachable) Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             color: Colors.orange.withOpacity(0.1),
             child: Row(

@@ -63,19 +63,9 @@ def _init_firebase():
 
 # ── Indian logistics search queries ───────────────────────────────────────────
 LOGISTICS_QUERIES = [
-    "India port strike delay logistics",
-    "Chennai port congestion closure",
-    "Mumbai JNPT port disruption",
-    "India highway blockade freight",
-    "Indian railway freight disruption",
-    "India flood road closed transport",
-    "cyclone India port shipping",
-    "India customs delay cargo",
-    "Nhava Sheva port disruption",
-    "India truck driver strike",
-    "Bengaluru warehouse fire logistics",
-    "Kolkata port congestion",
-    "India supply chain disruption",
+    "India shipping",
+    "India port",
+    "India logistics",
 ]
 
 # ── Deduplication — keep in memory + Firestore ────────────────────────────────
@@ -328,14 +318,22 @@ def _poll_once():
     fresh = _deduplicate(articles)
     print(f"[POLLER] {len(fresh)} new articles to process")
 
+
+
+    skipped = 0
     for article in fresh:
+        if skipped >= 2:
+            print(f"[POLLER] ⏹ Reached 2 non-logistics skips, stopping cycle early")
+            break
+
         title = article.get("title", "")[:60]
         print(f"[POLLER] Processing: {title}...")
 
         gemini_result = _analyze_with_gemini(article)
         if not gemini_result:
-            print(f"[POLLER] ↩ Not a logistics disruption, skipping")
+            print(f"[POLLER] ↩ Not a logistics disruption, skipping ({skipped+1}/4)")
             _mark_seen(article["_hash"])
+            skipped += 1
             continue
 
         cascade_result = _run_cascade(gemini_result)
@@ -343,9 +341,6 @@ def _poll_once():
 
         _write_to_firestore(article, gemini_result, cascade_result, routes)
         _mark_seen(article["_hash"])
-
-        # Small delay between articles to avoid hammering APIs
-        time.sleep(1)
 
     print(f"[POLLER] ✅ Poll cycle done. Next poll in {POLL_INTERVAL}s")
 
