@@ -321,7 +321,7 @@ def _poll_once():
 
 
     skipped = 0
-    for article in fresh:
+    for article in fresh[:4]:
         if skipped >= 2:
             print(f"[POLLER] ⏹ Reached 2 non-logistics skips, stopping cycle early")
             break

@@ -72,3 +72,7 @@ secrets/
 !resilientnet_backend/models/stgcn_improved.pt
 !resilientnet/models/stgcn_trained.pt
 !resilientnet/models/stgcn_improved.pt
+
+# Firebase service account — NEVER commit this
+serviceAccountKey.json
+**/serviceAccountKey.json
