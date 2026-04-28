@@ -184,7 +184,6 @@ def predict_cascade_gnn(
         }
 
     if source_id is None:
-    if source_id is None:
         return None
 
     # Build [N, T, 10] feature tensor
